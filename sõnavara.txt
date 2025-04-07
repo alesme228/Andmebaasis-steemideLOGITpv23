@@ -4,3 +4,13 @@ Haldus - Адмиинистрирование / обслуживание
 Andmebaaside haldussüstemid - системы администрирования БД - программы для работы с БД - MS SQL Server, Oracle, mariaDB/phpMyAdmin, Access.
 
 ----------------------------------------------------------
+tabel / tabelid - таблица
+rida / read - строка / строки
+veerg / veerud - столбец / столбцы
+rida = kirjad - строки = записи
+veerg = väli - столбцы = поля
+päring - запрос - query
+käivita päring - запусти запрос - execute query!
+Värskenda / uuenda - обновить 
+Kustuta - удалять
+Loo - создать
