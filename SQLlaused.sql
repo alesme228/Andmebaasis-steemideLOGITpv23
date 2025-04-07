@@ -23,3 +23,10 @@ SELECT * FROM inimene;
 
 --tabeli kustumile
 DROP TABLE inimene;
+insert into inimene
+(nimi, synniaeg, telefon, pikkus, opilaskodu)
+VALUES
+('Kristina Maksimova', '2022-06-01', '5657457', '155.5', 1),
+('Dmitry Nagiev', '2025-04-05', '485856', '100.1', 0),
+('Aleksandra Korol', '2005-07-07', '3486856', '177.0', 0),
+('Melisa Panni', '2024-01-24', '4365734', '166.5', 1);
