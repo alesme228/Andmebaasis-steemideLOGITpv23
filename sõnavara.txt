@@ -1,1 +1,6 @@
+Andmed ja infarmatsioon 
+Andmed - see on töödeldud infarmatsioon - данные это обработанная информация.
+Haldus - Адмиинистрирование / обслуживание
+Andmebaaside haldussüstemid - системы администрирования БД - программы для работы с БД - MS SQL Server, Oracle, mariaDB/phpMyAdmin, Access.
 
+----------------------------------------------------------
