@@ -31,11 +31,13 @@ VALUES
 ('Aleksandra Korol', '2005-07-07', '3486856', '177.0', 0),
 ('Melisa Panni', '2024-01-24', '4365734', '166.5', 1);
 
+--tabel elukoht
 CREATE TABLE elukoht(
 elukohtID int PRIMARY KEY identity (1,1),
 elukoht varchar(50) UNIQUE,
 maakond varchar(50)
 );
+--andmete lisamine tabeli elukoht
 select * from elukoht;
 --andmete lisamine tabeli elukoht
 insert into elukoht(elukoht, maakond)
