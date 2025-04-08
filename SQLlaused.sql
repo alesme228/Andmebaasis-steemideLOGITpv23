@@ -10,7 +10,7 @@ CREATE DATABASE smekalovaLOGITpv23;
 USE smekalovaLOGITpv23;
 
 --tabeli loomine 
---identity(1,1) - ise täidab tabeli 1,2,3,....
+--auto_increment - ise täidab tabeli 1,2,3....
 CREATE TABLE inimene(
 inimeneID int Primary Key identity(1,1),
 nimi varchar(50),unique,
