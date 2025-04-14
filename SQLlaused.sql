@@ -94,3 +94,72 @@ values
 
 select inimene.nimi, inimene.synniaeg, auto.autoNR, auto.mudell, auto.mark from inimene join auto
 on inimene.autoID=auto.autoID;
+
+create database proceduurSmekalovaLOGITpv23;
+use proceduurSmekalovaLOGITpv23;
+Create table filmid(
+filmID int primary key identity(1,1),
+filmNimi varchar(30) unique,
+filmPikkus int,
+rezisoor varchar(30)
+);
+select * from filmid;
+
+insert into filmid(filmNimi, FilmPikkus, rezisoor)
+values ('Minecraft', 84, 'Radek Beran');
+
+--protseduur, mis lisab uus film ja kohe tabelis (insert, select)
+
+create procedure lisaFilm
+@nimi varchar(30),
+@pikkus int,
+@rezisoor varchar(30)
+AS
+BEGIN
+insert into filmid(filmNimi, FilmPikkus, rezisoor)
+values (@nimi, @pikkus, @rezisoor);
+select * from filmid;
+END;
+
+--KUTSE
+EXEC lisafilm 'Bob ja Bobek', 120, 'testtest';
+
+--delete procedure
+drop procedure lisaFilm;
+
+--proceduur, mis kustutab filmi filmID järgi (Delete, select)
+create procedure kustutaFilm
+@id int
+AS
+BEGIN
+select * from filmid;
+Delete from filmid where filmID=@id;
+select * from filmid;
+END;
+
+--kutse
+EXEC kustutaFilm 1;
+EXEC kustutaFilm @id=1; 
+
+--proceduur, mis uuendab filmiPikkus 5% suurendab 
+Create procedure uuendaFilmiPikkus
+AS
+BEGIN
+Select * from filmid;
+UPDATE filmid SET filmPikkus=filmPikkus*1.05;
+select * from filmid;
+END;
+
+EXEC uuendaFilmiPikkus;
+
+--proceduur, mis uuendab filmiPikkus kasutaja sisestav väärtus
+Create procedure uuendaFilmiPikkus2
+@arv decimal(5,2)
+AS
+BEGIN
+Select * from filmid;
+UPDATE filmid SET filmPikkus=filmPikkus*@arv;
+select * from filmid;
+END;
+
+EXEC uuendaFilmiPikkus2 @arv=0.5;
