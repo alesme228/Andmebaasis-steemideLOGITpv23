@@ -163,3 +163,81 @@ select * from filmid;
 END;
 
 EXEC uuendaFilmiPikkus2 @arv=0.5;
+
+Create table filmid(
+filmID int primary key identity(1,1),
+filmNimi varchar(30) unique,
+filmPikkus int,
+rezisoor varchar(30)
+);
+
+select * from filmid;
+
+insert into filmid(filmNimi, FilmPikkus, rezisoor)
+values ('Maria', 124, 'Pablo Larrain');
+
+--protseduur, mis näitab filmid tähe järgi
+
+create procedure filmid1taht
+@taht char(1)
+AS
+BEGIN
+select * from filmid
+where filmNimi LIKE CONCAT (@taht, '%');
+END
+
+--kutse
+EXEC filmid1taht 'M';
+
+--protseduur, mis näitab filmid mis sisaldavad nimes sistestatud täht
+
+create procedure filmidSisaldabtaht
+@taht char(1)
+AS
+BEGIN
+select * from filmid
+where filmNimi LIKE CONCAT ('%', @taht, '%');
+END
+
+--kutse
+EXEC filmidSisaldabTaht 'u';
+
+--protseduur, mis näitab keskmine filmide pikkus
+create procedure keskminePikkus
+AS
+BEGIN
+select AVG(filmPikkus) as 'Keskmine Pikkus' from filmid
+END
+
+--kutse
+exec keskminePikkus;
+
+--KEERULINE PROTSEDUUR
+--ALTER TABLE tablinimi ADD veerg tyyp -- добавление столбца
+--ALTER TABLE tabelinimi drop veerg -- удаление столбца
+
+
+CREATE PROCEDURE tabelimuudatus
+@tegevus varchar(10),
+@tabelinimi varchar(25),
+@veerunimi varchar(25),
+@tyyp varchar(25) =null
+AS
+BEGIN
+DECLARE @sqltegevus as varchar(max)
+set @sqltegevus=case 
+when @tegevus='add' then concat('ALTER TABLE ', @tabelinimi, ' ADD ', @veerunimi, ' ', @tyyp)
+when @tegevus='drop' then concat('ALTER TABLE ', @tabelinimi, ' DROP COLUMN ', @veerunimi)
+END;
+print @sqltegevus;
+begin 
+EXEC (@sqltegevus);
+END
+END;
+
+select * from filmid;
+
+--добавление столбца
+EXEC tabelimuudatus @tegevus='add', @tabelinimi='filmid', @veerunimi='test', @tyyp='int';
+--удаление столбца
+EXEC tabelimuudatus @tegevus='drop', @tabelinimi='filmid', @veerunimi='test';
