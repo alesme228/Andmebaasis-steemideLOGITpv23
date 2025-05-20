@@ -72,3 +72,152 @@ where toodeNimetus='Fanta';
 
 select * from toode;
 select * from logi;
+
+create database SporditulemusedDB;
+
+use SporditulemusedDB;
+
+CREATE TABLE Mangud (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    kuupaev DATE NOT NULL,
+    meeskond1 VARCHAR(100) NOT NULL,
+    meeskond2 VARCHAR(100) NOT NULL,
+    tulemus VARCHAR(20)
+);
+
+CREATE TABLE Mangijad (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    eesnimi VARCHAR(50) NOT NULL,
+    perenimi VARCHAR(50) NOT NULL,
+    synnipaev DATE NOT NULL,
+    meeskond VARCHAR(100) NOT NULL,
+    mang_id INT,
+    FOREIGN KEY (mang_id) REFERENCES Mangud(id)
+);
+
+
+drop table Mangijad;
+drop table Mangud;
+drop table logi;
+
+CREATE TABLE logi (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    kasutaja VARCHAR(100), 
+    aeg DATETIME,
+    tegevus VARCHAR(250),
+    andmed VARCHAR(250));
+
+INSERT INTO Mangud (kuupaev, meeskond1, meeskond2, tulemus) VALUES
+('2025-05-20', 'Tiigrid', 'Hundid', '3-1'),
+('2025-05-22', 'Karud', 'Kotkad', '2-2'),
+('2025-05-25', 'Rebased', 'Pantrid', '1-0'),
+('2025-05-27', 'Hobused', 'Siilid', '0-0'),
+('2025-05-29', 'Ahvid', 'Nugised', '4-2'),
+('2025-06-01', 'Jaanalinnud', 'Kassid', '1-3');
+
+INSERT INTO Mangijad (eesnimi, perenimi, synnipaev, meeskond, mang_id) VALUES
+('Artem', 'Ivanov', '2001-03-14', 'Tiigrid', 1),
+('Nikita', 'Petrov', '2000-07-22', 'Kotkad', 2),
+('Maksim', 'Smirnov', '1999-05-05', 'Siilid', 4),
+('Dmitrii', 'Sidorov', '2002-01-10', 'Rebased', 3),
+('Vladislav', 'Morozov', '1998-09-15', 'Ahvid', 5),
+('Ilya', 'Zhukov', '1997-12-12', 'Nugised', 5),
+('Pavel', 'Lebedev', '2001-11-11', 'Karud', 2),
+('Sergei', 'Egorov', '2003-02-02', 'Jaanalinnud', 6),
+('Kirill', 'Kuznetsov', '2000-06-06', 'Kassid', 6),
+('Oleg', 'Novikov', '1996-04-04', 'Hobused', 4),
+('Andrei', 'Fedorov', '2002-08-08', 'Pantrid', 3),
+('Roman', 'Kiselev', '1999-10-10', 'Hundid', 1);
+
+select * from mangud;
+select * from mangijad;
+select * from logi;
+
+CREATE OR ALTER TRIGGER mangijad_lisamine
+ON Mangijad
+AFTER INSERT
+AS
+    INSERT INTO Logi (tegevus, aeg, kasutaja, andmed)
+    SELECT 
+        'Mangijate kirje lisatud',
+        GETDATE(),
+        SYSTEM_USER,
+        CONCAT(
+            'Eesnimi: ', i.eesnimi,
+            ', Perenimi: ', i.perenimi,
+            ', Synnipäev: ', FORMAT(i.synnipaev, 'yyyy-MM-dd'),
+            ', Meeskond: ', i.meeskond,
+            ', MangId: ', i.mang_id,
+            ', Mang kuupaev: ', FORMAT(m.kuupaev, 'yyyy-MM-dd'),
+            ', Mang meeskond1: ', m.meeskond1,
+            ', Mang meeskond2: ', m.meeskond2,
+            ', Mang tulemus: ', m.tulemus
+        )
+    FROM inserted i
+    INNER JOIN Mangud m ON m.id = i.mang_id;
+
+CREATE OR ALTER TRIGGER dbo.mangijad_muudatus
+ON dbo.Mangijad
+AFTER UPDATE
+AS
+    INSERT INTO Logi (tegevus, aeg, kasutaja, andmed)
+    SELECT 
+        'Mangijate kirje muudetud',
+        GETDATE(),
+        SYSTEM_USER,
+        CONCAT(
+            'Id: ', i.id,
+            ', Eesnimi: ', i.eesnimi,
+            ', Perenimi: ', i.perenimi,
+            ', Synnipäev: ', FORMAT(i.synnipaev, 'yyyy-MM-dd'),
+            ', Meeskond: ', i.meeskond,
+            ', MangId: ', i.mang_id,
+            ', Mang kuupaev: ', FORMAT(m.kuupaev, 'yyyy-MM-dd'),
+            ', Mang meeskond1: ', m.meeskond1,
+            ', Mang meeskond2: ', m.meeskond2,
+            ', Mang tulemus: ', m.tulemus
+        )
+    FROM inserted i
+    INNER JOIN Mangud m ON m.id = i.mang_id;
+
+CREATE OR ALTER TRIGGER dbo.mangijad_kustutamine
+ON dbo.Mangijad
+AFTER DELETE
+AS
+    INSERT INTO Logi (tegevus, aeg, kasutaja, andmed)
+    SELECT 
+        'Mangijate kirje kustutatud',
+        GETDATE(),
+        SYSTEM_USER,
+        CONCAT(
+            'Id: ', d.id,
+            ', Eesnimi: ', d.eesnimi,
+            ', Perenimi: ', d.perenimi,
+            ', Synnipäev: ', FORMAT(d.synnipaev, 'yyyy-MM-dd'),
+            ', Meeskond: ', d.meeskond,
+            ', MangId: ', d.mang_id,
+            ', Mang kuupaev: ', FORMAT(m.kuupaev, 'yyyy-MM-dd'),
+            ', Mang meeskond1: ', m.meeskond1,
+            ', Mang meeskond2: ', m.meeskond2,
+            ', Mang tulemus: ', m.tulemus
+        )
+    FROM deleted d
+    INNER JOIN Mangud m ON m.id = d.mang_id;
+
+drop trigger mangud_muudatus;
+
+select * from mangijad;
+select * from mangud;
+select * from logi;
+
+--Kontroll
+
+insert into mangijad (eesnimi, perenimi, synnipaev, meeskond, mang_id)
+values ('test', 'test', '2005-07-21', 'test', 5);
+
+UPDATE Mangijad
+SET meeskond = 'Spartak'
+WHERE id =  2 
+
+DELETE FROM Mangijad
+WHERE id = 2
