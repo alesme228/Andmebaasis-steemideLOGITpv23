@@ -78,34 +78,31 @@ create database SporditulemusedDB;
 use SporditulemusedDB;
 
 CREATE TABLE Mangud (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    kuupaev DATE NOT NULL,
-    meeskond1 VARCHAR(100) NOT NULL,
-    meeskond2 VARCHAR(100) NOT NULL,
-    tulemus VARCHAR(20)
+id INT PRIMARY KEY IDENTITY(1,1),
+kuupaev DATE NOT NULL,
+meeskond1 VARCHAR(100) NOT NULL,
+meeskond2 VARCHAR(100) NOT NULL,
+tulemus VARCHAR(20)
 );
 
 CREATE TABLE Mangijad (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    eesnimi VARCHAR(50) NOT NULL,
-    perenimi VARCHAR(50) NOT NULL,
-    synnipaev DATE NOT NULL,
-    meeskond VARCHAR(100) NOT NULL,
-    mang_id INT,
-    FOREIGN KEY (mang_id) REFERENCES Mangud(id)
+id INT PRIMARY KEY IDENTITY(1,1),
+eesnimi VARCHAR(50) NOT NULL,
+perenimi VARCHAR(50) NOT NULL,
+synnipaev DATE NOT NULL,
+meeskond VARCHAR(100) NOT NULL,
+mang_id INT,
+FOREIGN KEY (mang_id) REFERENCES Mangud(id)
 );
 
-
-drop table Mangijad;
-drop table Mangud;
-drop table logi;
-
 CREATE TABLE logi (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    kasutaja VARCHAR(100), 
-    aeg DATETIME,
-    tegevus VARCHAR(250),
-    andmed VARCHAR(250));
+id INT PRIMARY KEY IDENTITY(1,1),
+kasutaja VARCHAR(100), 
+aeg DATE,
+tegevus VARCHAR(250),
+andmed VARCHAR(250));
+
+drop table logi;
 
 INSERT INTO Mangud (kuupaev, meeskond1, meeskond2, tulemus) VALUES
 ('2025-05-20', 'Tiigrid', 'Hundid', '3-1'),
@@ -133,91 +130,68 @@ select * from mangud;
 select * from mangijad;
 select * from logi;
 
-CREATE OR ALTER TRIGGER mangijad_lisamine
+drop trigger mangijaUuendamine;
+
+CREATE TRIGGER mangijaLisamine
 ON Mangijad
-AFTER INSERT
+FOR INSERT
 AS
-    INSERT INTO Logi (tegevus, aeg, kasutaja, andmed)
-    SELECT 
-        'Mangijate kirje lisatud',
-        GETDATE(),
-        SYSTEM_USER,
-        CONCAT(
-            'Eesnimi: ', i.eesnimi,
-            ', Perenimi: ', i.perenimi,
-            ', Synnipäev: ', FORMAT(i.synnipaev, 'yyyy-MM-dd'),
-            ', Meeskond: ', i.meeskond,
-            ', MangId: ', i.mang_id,
-            ', Mang kuupaev: ', FORMAT(m.kuupaev, 'yyyy-MM-dd'),
-            ', Mang meeskond1: ', m.meeskond1,
-            ', Mang meeskond2: ', m.meeskond2,
-            ', Mang tulemus: ', m.tulemus
-        )
-    FROM inserted i
-    INNER JOIN Mangud m ON m.id = i.mang_id;
+INSERT INTO logi(kasutaja, aeg, tegevus, andmed)
+SELECT 
+SYSTEM_USER,
+GETDATE(),
+'Mangija lisati',
+CONCAT('Eesnimi: ', i.eesnimi, ', Perenimi: ', i.perenimi,', Meeskond: ', i.meeskond, ', Mang: ', m.kuupaev, ' | ', m.meeskond1, ' vs ', m.meeskond2)
+FROM inserted i
+INNER JOIN Mangud m ON i.mang_id = m.id;
 
-CREATE OR ALTER TRIGGER dbo.mangijad_muudatus
-ON dbo.Mangijad
-AFTER UPDATE
+CREATE TRIGGER mangijaUuendamine
+ON Mangijad
+FOR UPDATE
 AS
-    INSERT INTO Logi (tegevus, aeg, kasutaja, andmed)
-    SELECT 
-        'Mangijate kirje muudetud',
-        GETDATE(),
-        SYSTEM_USER,
-        CONCAT(
-            'Id: ', i.id,
-            ', Eesnimi: ', i.eesnimi,
-            ', Perenimi: ', i.perenimi,
-            ', Synnipäev: ', FORMAT(i.synnipaev, 'yyyy-MM-dd'),
-            ', Meeskond: ', i.meeskond,
-            ', MangId: ', i.mang_id,
-            ', Mang kuupaev: ', FORMAT(m.kuupaev, 'yyyy-MM-dd'),
-            ', Mang meeskond1: ', m.meeskond1,
-            ', Mang meeskond2: ', m.meeskond2,
-            ', Mang tulemus: ', m.tulemus
-        )
-    FROM inserted i
-    INNER JOIN Mangud m ON m.id = i.mang_id;
+INSERT INTO logi(kasutaja, aeg, tegevus, andmed)
+SELECT 
+SYSTEM_USER,
+GETDATE(),
+'Mangija on uuendatud',
+CONCAT('Vanad andmed - ','Eesnimi: ', d.eesnimi, ', Perenimi: ', d.perenimi,', Meeskond: ', d.meeskond,', Mang: ', mVana.kuupaev, ' | ', mVana.meeskond1, ' vs ', mVana.meeskond2,
+' || Uued andmed - ','Eesnimi: ', i.eesnimi, ', Perenimi: ', i.perenimi,', Meeskond: ', i.meeskond,', Mang: ', mUus.kuupaev, ' | ', mUus.meeskond1, ' vs ', mUus.meeskond2
+)
+FROM deleted d
+INNER JOIN inserted i ON d.id = i.id
+INNER JOIN Mangud mVana ON d.mang_id = mVana.id
+INNER JOIN Mangud mUus ON i.mang_id = mUus.id;
 
-CREATE OR ALTER TRIGGER dbo.mangijad_kustutamine
-ON dbo.Mangijad
-AFTER DELETE
+CREATE TRIGGER mangijaKustutamine
+ON Mangijad
+FOR DELETE
 AS
-    INSERT INTO Logi (tegevus, aeg, kasutaja, andmed)
-    SELECT 
-        'Mangijate kirje kustutatud',
-        GETDATE(),
-        SYSTEM_USER,
-        CONCAT(
-            'Id: ', d.id,
-            ', Eesnimi: ', d.eesnimi,
-            ', Perenimi: ', d.perenimi,
-            ', Synnipäev: ', FORMAT(d.synnipaev, 'yyyy-MM-dd'),
-            ', Meeskond: ', d.meeskond,
-            ', MangId: ', d.mang_id,
-            ', Mang kuupaev: ', FORMAT(m.kuupaev, 'yyyy-MM-dd'),
-            ', Mang meeskond1: ', m.meeskond1,
-            ', Mang meeskond2: ', m.meeskond2,
-            ', Mang tulemus: ', m.tulemus
-        )
-    FROM deleted d
-    INNER JOIN Mangud m ON m.id = d.mang_id;
+INSERT INTO logi(kasutaja, aeg, tegevus, andmed)
+SELECT 
+SYSTEM_USER,
+GETDATE(),
+'Mangija on kustutatud',
+CONCAT('Eesnimi: ', d.eesnimi,', Perenimi: ', d.perenimi,', Meeskond: ', d.meeskond,', Mang: ', m.kuupaev, ' | ', m.meeskond1, ' vs ', m.meeskond2
+)
+FROM deleted d
+INNER JOIN Mangud m ON d.mang_id = m.id;
 
-drop trigger mangud_muudatus;
 
-select * from mangijad;
-select * from mangud;
-select * from logi;
+insert into Mangijad (eesnimi, perenimi, synnipaev, meeskond, mang_id) values
+('test', 'test', '2007-09-25', 'test', 2);
 
---Kontroll
 
-insert into mangijad (eesnimi, perenimi, synnipaev, meeskond, mang_id)
-values ('test', 'test', '2005-07-21', 'test', 5);
+update mangijad
+set meeskond= 'koerad'
+where meeskond='Kassid';
 
-UPDATE Mangijad
-SET meeskond = 'Spartak'
-WHERE id =  2 
 
-DELETE FROM Mangijad
-WHERE id = 2
+select  * from logi;
+
+delete from mangijad
+where eesnimi = 'Roman';
+
+grant select, update, insert on mangijad to õpilane;
+grant select, update, insert on mangud to õpilane;
+
+revoke all privileges on logi to õpilane;
