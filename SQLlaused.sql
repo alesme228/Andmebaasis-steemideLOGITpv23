@@ -241,3 +241,60 @@ select * from filmid;
 EXEC tabelimuudatus @tegevus='add', @tabelinimi='filmid', @veerunimi='test', @tyyp='int';
 --удаление столбца
 EXEC tabelimuudatus @tegevus='drop', @tabelinimi='filmid', @veerunimi='test';
+
+
+create trigger klassKustutamine 
+on Klass
+for delete
+as
+insert into logi (kuupaev, kasutaja, tegevus, andmed)
+select
+getdate(),
+system_user,                                  
+'Klass kustutatud',          
+concat(
+'KlassNimi = ', deleted.KlassNimi, ', OpetajaID = ', deleted.OpetajaID, ', OpetajaNimi = ', Opetaja.OpetajaNimi, ', OpilaseArv = ', deleted.OpilaseArv)
+from deleted
+inner join Opetaja ON deleted.OpetajaID = Opetaja.OpetajaID;
+
+select * from logi;
+
+create procedure infoOpilased
+@opetajaNimi varchar(50)
+as
+begin
+select
+Opetaja.OpetajaNimi,
+Klass.KlassNimi,
+Opilane.OpilaseNimi
+from Opetaja
+inner join Klass ON Opetaja.OpetajaID = Klass.OpetajaID
+inner join Opilane ON Klass.KlassID = Opilane.KlassID
+where Opetaja.OpetajaNimi = @opetajaNimi
+end;
+
+exec infoOpilased @opetajaNimi = 'Olga Petrova';
+
+create trigger uuendaOpilaseArvLisamisel
+on Opilane
+for insert
+as
+update Klass
+set OpilaseArv = OpilaseArv + 1
+from Klass
+inner join inserted on Klass.KlassID = inserted.KlassID;
+
+insert into klass (klassNimi, OpetajaID, OpilaseArv) values
+('test', 9, 15);
+select * from klass; 
+
+delete from klass
+where klassID = 23;
+
+insert into opilane (OpilaseNimi, KlassID) values
+('Test1', 13),
+('Test2', 13),
+('Test3', 13);
+
+select * from opilane;
+select * from klass;
