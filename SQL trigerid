@@ -195,3 +195,52 @@ grant select, update, insert on mangijad to õpilane;
 grant select, update, insert on mangud to õpilane;
 
 revoke all privileges on logi to õpilane;
+
+
+select * from opetaja;
+select * from opilane;
+select * from klass;
+
+
+create trigger opetajaUuendamine 
+on Opetaja 
+for update
+as
+insert into logi(kuupaev, kasutaja, tegevus, andmed) 
+select  
+getdate(),
+system_user,
+'tabel opetaja on uuendatud',
+concat('Vanad andmed - ', deleted.OpetajaNimi,', ', deleted.Aine, ' | Uued andmed - ', inserted.OpetajaNimi, ' , ' ,inserted.Aine)
+from deleted inner join inserted on deleted.OpetajaID=inserted.OpetajaID;
+
+insert into opetaja(opetajaNimi, Aine) values
+('Aleksandra Smekalova', 'Joonistus');
+
+update opetaja set opetajaNimi='Emilia Koroleva'
+where aine='Joonistus';
+
+select * from logi;
+
+
+create procedure infoKlass
+@klassNimi varchar(50)
+as
+begin
+select 
+klass.klassNimi,
+Opetaja.opetajaNimi,
+opilane.opilaseNimi
+from klass
+inner join opetaja on klass.opetajaID = opetaja.opetajaID
+inner join opilane on klass.klassID = opilane.klassID
+where klass.klassNimi = @klassNimi
+end;
+ 
+drop procedure infoklass;
+
+
+exec infoklass @klassnimi = '11B';
+
+delete from opilane
+where opilaseNimi = 'test35';
